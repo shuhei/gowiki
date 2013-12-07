@@ -54,7 +54,7 @@ var funcMap = template.FuncMap {
   "markdown": markdown,
   "unsafe": unsafe,
 }
-var templates = template.Must(template.New("tmpls").Funcs(funcMap).ParseFiles("tmpl/edit.html", "tmpl/view.html"))
+var templates = template.Must(template.New("tmpls").Funcs(funcMap).ParseFiles("views/edit.html", "views/view.html"))
 
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
   err := templates.ExecuteTemplate(w, tmpl + ".html", p)
