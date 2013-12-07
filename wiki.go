@@ -6,6 +6,7 @@ import (
   "html/template"
   "io/ioutil"
   "net/http"
+  "github.com/russross/blackfriday"
 )
 
 //
@@ -33,7 +34,11 @@ func loadPage(title string) (*Page, error) {
 //
 // Template
 //
-var templates = template.Must(template.ParseFiles("tmpl/edit.html", "tmpl/view.html"))
+var funcMap = template.FuncMap {
+  "markdown": blackfriday.MarkdownBasic,
+  "unsafe": func (str string) template.HTML { return template.HTML(str) },
+}
+var templates = template.Must(template.New("tmpls").Funcs(funcMap).ParseFiles("tmpl/edit.html", "tmpl/view.html"))
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
   err := templates.ExecuteTemplate(w, tmpl + ".html", p)
   if err != nil {
