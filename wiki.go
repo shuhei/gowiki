@@ -123,7 +123,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
   if r.URL.Path == "/" {
     http.Redirect(w, r, "/view/FrontPage", http.StatusFound)
   } else {
-    http.NotFound(w, r)
+    http.ServeFile(w, r, "public" + r.URL.Path)
   }
 }
 
