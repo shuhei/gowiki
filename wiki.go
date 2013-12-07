@@ -2,6 +2,7 @@ package main
 
 import (
   "regexp"
+  "os"
   "html/template"
   "io/ioutil"
   "net/http"
@@ -97,6 +98,11 @@ func main() {
   http.HandleFunc("/edit/", makeHandler(editHandler))
   http.HandleFunc("/save/", makeHandler(saveHandler))
   http.HandleFunc("/", rootHandler)
-  http.ListenAndServe(":8080", nil)
+
+  port := os.Getenv("PORT")
+  if port == "" {
+    port = "8080"
+  }
+  http.ListenAndServe(":" + port, nil)
 }
 
