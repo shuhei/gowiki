@@ -3,6 +3,7 @@ package main
 import (
   "regexp"
   "os"
+  "strings"
   "html/template"
   "io/ioutil"
   "net/http"
@@ -17,6 +18,11 @@ type Page struct {
   Body []byte
 }
 
+type PageWithList struct {
+  Page *Page
+  Pages []string
+}
+
 func (p *Page) save() error {
   filename := "data/" + p.Title + ".txt"
   return ioutil.WriteFile(filename, p.Body, 0600)
@@ -29,6 +35,20 @@ func loadPage(title string) (*Page, error) {
     return nil, err
   }
   return &Page{Title: title, Body: body}, nil
+}
+
+func listPages() []string {
+  files, _ := ioutil.ReadDir("data")
+  pages := make([]string, len(files))
+  i := 0
+  for _, file := range files {
+    filename := file.Name()
+    if filename[0] != '.' {
+      pages[i] = strings.TrimSuffix(filename, ".txt")
+      i += 1
+    }
+  }
+  return pages[0:i]
 }
 
 //
@@ -68,7 +88,8 @@ func prepareTemplates(filenames ...string) TemplateMap {
 var templates = prepareTemplates("edit.html", "view.html")
 
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
-  err := templates[tmpl + ".html"].ExecuteTemplate(w, "layout", p)
+  pp := &PageWithList{Page: p, Pages: listPages()}
+  err := templates[tmpl + ".html"].ExecuteTemplate(w, "layout", pp)
   if err != nil {
     http.Error(w, err.Error(), http.StatusInternalServerError)
     return

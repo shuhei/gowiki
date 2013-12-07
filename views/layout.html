@@ -12,8 +12,15 @@
         <h1><a href="/">gowiki</a></h1>
       </div>
       <div class="row">
-        <div class="col-md-12">
-          {{template "body" .}}
+        <div class="col-md-8">
+          {{template "body" .Page}}
+        </div>
+        <div class="col-md-4">
+          <ul>
+            {{range .Pages}}
+              <li><a href="/view/{{.}}">{{.}}</a></li>
+            {{end}}
+          </ul>
         </div>
       </div>
     </div>
