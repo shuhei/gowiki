@@ -34,11 +34,28 @@ func loadPage(title string) (*Page, error) {
 //
 // Template
 //
+func markdown(input []byte) []byte {
+  htmlFlags := 0
+  htmlFlags |= blackfriday.HTML_SKIP_HTML
+  render := blackfriday.HtmlRenderer(htmlFlags, "", "")
+
+  extensions := 0
+  extensions |= blackfriday.EXTENSION_FENCED_CODE
+  extensions |= blackfriday.EXTENSION_AUTOLINK
+
+  return blackfriday.Markdown(input, render, extensions)
+}
+
+func unsafe(str string) template.HTML {
+  return template.HTML(str)
+}
+
 var funcMap = template.FuncMap {
-  "markdown": blackfriday.MarkdownBasic,
-  "unsafe": func (str string) template.HTML { return template.HTML(str) },
+  "markdown": markdown,
+  "unsafe": unsafe,
 }
 var templates = template.Must(template.New("tmpls").Funcs(funcMap).ParseFiles("tmpl/edit.html", "tmpl/view.html"))
+
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
   err := templates.ExecuteTemplate(w, tmpl + ".html", p)
   if err != nil {
@@ -51,6 +68,7 @@ func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
 // Handlers
 //
 var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
+
 func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
   return func(w http.ResponseWriter, r *http.Request) {
     m := validPath.FindStringSubmatch(r.URL.Path)
