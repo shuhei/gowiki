@@ -50,14 +50,25 @@ func unsafe(str string) template.HTML {
   return template.HTML(str)
 }
 
-var funcMap = template.FuncMap {
-  "markdown": markdown,
-  "unsafe": unsafe,
+type TemplateMap map[string]*template.Template
+
+func prepareTemplates(filenames ...string) TemplateMap {
+  funcMap := template.FuncMap {
+    "markdown": markdown,
+    "unsafe": unsafe,
+  }
+  tmpls := make(TemplateMap)
+  for _, filename := range filenames {
+    files := []string{"views/" + filename, "views/layout.html"}
+    tmpls[filename] = template.Must(template.New("").Funcs(funcMap).ParseFiles(files...))
+  }
+  return tmpls
 }
-var templates = template.Must(template.New("tmpls").Funcs(funcMap).ParseFiles("views/edit.html", "views/view.html"))
+
+var templates = prepareTemplates("edit.html", "view.html")
 
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
-  err := templates.ExecuteTemplate(w, tmpl + ".html", p)
+  err := templates[tmpl + ".html"].ExecuteTemplate(w, "layout", p)
   if err != nil {
     http.Error(w, err.Error(), http.StatusInternalServerError)
     return
